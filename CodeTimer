@@ -1,0 +1,32 @@
+// Class used for timing sorting algorithms
+public class CodeTimer {
+
+	// executionTime given in form of long data type
+	private long executionTime;
+	
+	// executionTime automatically to be 0 upon instantiation 
+	public CodeTimer() {
+		this.executionTime = 0;
+	}
+	
+	// Timer starts at current time 
+	public void startTimer() {
+		this.executionTime = System.nanoTime();
+	}
+	
+	// Timer records difference between current time and start time 
+	public void stopTimer() {
+		this.executionTime = System.nanoTime() - executionTime;
+	}
+	
+	// Timer set back to zero
+	public void resetTimer() {
+		this.executionTime = 0;
+	}
+
+	// Getter for returning the time 
+	public long getExecutionTime() {
+		return executionTime;
+	}
+	
+}
