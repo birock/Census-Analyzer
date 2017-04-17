@@ -1,0 +1,308 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Scanner;
+
+/**
+ * 
+ * @author benrock
+ *
+ * Author: Ben Rock
+ * Date: March 25th, 2017
+ * Professor Bari, Data Structures
+ * US Census Analysis
+ *
+ */
+ 
+public class Census {
+
+	public static void main(String [] args) throws FileNotFoundException {
+		
+		// Instantiate user input scanner object
+		Scanner input = new Scanner(System.in);
+		
+		System.out.println("This program analyzes the percent change in populations of each state and territory");
+		System.out.println("of the United States between 2010 and 2016. We will compare the change between year X and Year Y.\n");
+		
+		// Solicit input values from user
+		System.out.println("Enter Year X: ");
+		int X = input.nextInt();
+		
+		System.out.println("\nEnter Year Y: ");
+		int Y = input.nextInt();
+		
+		// Instantiate two dimensional array to hold values in csv file 
+		String [] [] array = new String[56][8];
+		
+		// Iterate through each row in the "census.csv" file to populate the two dimensional array (no pun intended)
+		File csv = new File("census_formatted.csv");
+		Scanner scan = new Scanner(csv);
+		
+		for (int i = 0; i < 55; i++) {
+			String s = scan.next();
+			array[i] = s.split(",");
+		}
+		
+		// Instantiate an array to contain the percentage change in population of each state between the two years
+		double [] percentages = new double[56];
+		percentage [] states = new percentage[56];
+		
+		// Calculate percent change of each state between two given years X and Y
+		// Utilize Integer.parseInt(String s) in order to convert the string values to integers
+		// Subtract 2009 to account for position in the array in relation to given year
+		for (int i = 0; i < 55; i++) {
+			
+			double percent = ((double) (Integer.parseInt(array[i][Y-2009]) - Integer.parseInt(array[i][X-2009]))/Integer.parseInt(array[i][Y-2009]))*100;
+			percentages[i] = percent;
+			
+			// Create an array of each state/region paired with its percentage in the form of an object 
+			percentage percentage = new percentage(array[i][0],percentages[i]);
+			states[i] = percentage;
+		}
+		
+		// Create menu from which user can choose the sorting algorithm
+		System.out.println();
+		System.out.println("Choose a sorting algorithm for organizing the percentages: \n");
+		
+		System.out.println("1. Merge Sort");
+		System.out.println("2. Bubble Sort");
+		System.out.println("3. Plain Quick Sort");
+		System.out.println("4. Improved Quick Sort\n");
+		
+		System.out.println("Enter a number 1-4: ");
+		int option = input.nextInt();
+		
+		// Instantiate an object of type CodeTimer with which to time the sorting algorithms 
+		CodeTimer timer = new CodeTimer();
+ 
+		// Sorting processed here 
+		// Improved Quick Sort will be the default sorting algorithm
+		// Timer will be started upon invocation of each sorting algorithm
+		// PROBLEMS WITH 3 AND 4
+		switch(option) {
+		case 1: timer.startTimer();
+				MergeSort(states,0,states.length-1);
+				break;
+		case 2: timer.startTimer();
+				BubbleSort(states);
+				break;
+		case 3: timer.startTimer();
+				QuickSort_Plain(states,0,states.length-2);
+				break;
+		case 4: timer.startTimer();
+				QuickSort_Improved(states,0,states.length-2);
+				break;
+		default: timer.startTimer();
+				QuickSort_Improved(states,0,states.length-2);
+				break;
+		}
+		
+		// Display the sorted list of percentages 
+		System.out.println("\nBelow is the sorted list of percent changes of each state population between " + X + " and " + Y + ": \n");
+		for (int i = 0; i < states.length-1; i++) {
+			System.out.println((i + 1) + ": " + states[i].getName() + " " + states[i].getPercentage());
+		}
+		
+		timer.stopTimer();
+		System.out.println("\nThe running time of this use of the chosen sorting algorithm is: " + timer.getExecutionTime() + " nanoseconds.");
+		
+		System.out.println("\nEnter a state to find the one with the most similar percentage change to it between " + X + " and " + Y + ": ");
+		String state = input.next();
+		System.out.println();
+		
+		// Cycle through states to find one which is most similar in percentage change
+		for (int i = 0; i < states.length-1; i++) {
+			
+			if (states[i].getName().equals(state)) {
+				
+				// If first state in list, the next state must be the most similar
+				if (i == 0) {
+					System.out.println("The result is " + states[i+1].getName());
+				}
+				// If last state in list, the previous state must be the most similar
+				else if (i == states.length-1) {
+					System.out.println("The result is " + states[i-1].getName());
+				}
+				else {
+					// Check if next state of previous state has a smaller difference in percent change, then display its name
+					if (((states[i].getPercentage() - states[i-1].getPercentage()) < (states[i+1].getPercentage() - states[i].getPercentage()))) {
+						System.out.println("The result is " + states[i-1].getName());
+					}
+					else {
+						System.out.println("The result is " + states[i+1].getName());
+					}
+				}
+			}
+			
+		}
+		
+	}
+	
+	// Create array which swaps two elements in an array- will be utilized heavily in subsequent sorting algorithms
+	public static void swap(percentage [] X, int a, int b) {
+		
+		percentage temp = X[a];
+		X[a] = X[b];
+		X[b] = temp;
+		
+	}
+	
+	public static void swap(double [] X, int a, int b) {
+		
+		double temp = X[a];
+		X[a] = X[b];
+		X[b] = temp;
+		
+	}
+	
+	// BubbleSort
+	public static void BubbleSort(percentage [] X) {
+		
+		for (int i = 0; i < X.length-1; i++) {
+			for (int j = i + 1; j < X.length-1; j++) {
+				if (X[i].getPercentage() > X[j].getPercentage()) {
+					swap(X,i,j);
+				}
+			}
+		}
+	}
+	
+	public static void BubbleSort(double [] X) {
+		
+		for (int i = 0; i < X.length-1; i++) {
+			for (int j = i + 1; j < X.length-1; j++) {
+				if (X[i] > X[j]) {
+					swap(X,i,j);
+				}
+			}
+		}
+	}
+	
+	// Normal QuickSort
+	public static void QuickSort_Plain(percentage [] X, int low, int high) {
+		
+		int i = low;
+		int j = high;
+		
+		double pivot = X[low + (high-low)/2].getPercentage();
+		
+		while (i <= j) {
+			
+			while (pivot > X[i].getPercentage()) {
+				i++;
+			}
+			
+			while (pivot < X[j].getPercentage()) {
+				j--;
+			}
+			
+			if (i <= j) {
+				swap(X,i,j);
+				i++;
+				j--;
+			}
+		}
+		
+		if (X == null || X.length == 1) {
+			return;
+		}
+		
+		if (low <= j) {
+			QuickSort_Plain(X,low,j);
+		}
+		
+		if (i <= high) {
+			QuickSort_Plain(X,i,high);
+		}
+	}
+	
+	// Improved QuickSort
+	public static void QuickSort_Improved(percentage [] X, int low, int high) {
+		
+		int i = low;
+		int j = high;
+		
+		// Algorithm will be improved through more effective pivot selection 
+		// Take first value, middle value, and final value and determine the median 
+		double first = X[0].getPercentage();
+		double middle = X[X.length/2].getPercentage();
+		double last = X[X.length-2].getPercentage();
+		
+		// Use bubble sort algorithm to order the three values (short running time because only three values)
+		double [] Y = {first,middle,last};
+		BubbleSort(Y);
+		
+		// Median should be located at index 1 of Y 
+		double pivot = Y[1];
+		
+		while (i <= j) {
+			
+			while (pivot > X[i].getPercentage()) {
+				i++;
+			}
+			
+			while (pivot < X[j].getPercentage()) {
+				j--;
+			}
+			
+			if (i <= j) {
+				swap(X,i,j);
+				i++;
+				j--;
+			}
+		}
+		
+		if (X == null || X.length == 1) {
+			return;
+		}
+		
+		if (low <= j) {
+			QuickSort_Plain(X,low,j);
+		}
+		
+		if (i <= high) {
+			QuickSort_Plain(X,i,high);
+		}
+	}
+	
+	// Merge Sort Algorithm
+	public static void MergeSort(percentage [] X, int low, int high) 
+    {
+        int range = high - low;   
+        
+        if (range <= 1) 
+            return; 
+        
+        int mid = low + range/2; 
+        
+        // recursive line 
+        MergeSort(X, low, mid); 
+        MergeSort(X, mid, high); 
+        
+        // merge two sorted subarrays
+        percentage [] temp = new percentage[range];
+        
+        int i = low, j = mid;
+        
+        for (int k = 0; k < range; k++) 
+        {
+            if (i == mid)  
+                temp[k] = X[j++];
+            
+            else if (j == high) 
+                temp[k] = X[i++];
+            
+            else if (X[j].getPercentage() < X[i].getPercentage()) 
+                temp[k] = X[j++];
+            
+            else 
+                temp[k] = X[i++];
+        }  
+        
+        for (int k = 0; k < range; k++) 
+            X[low + k] = temp[k];         
+    }
+
+}
+	
+
